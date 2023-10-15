@@ -17,11 +17,12 @@ export class GoogleStategy extends PassportStrategy(Strategy, 'google') {
   }
 
   async validate (accessToken: string, refreshToken: string, profile: Profile): Promise<any> {
-    const { name, email, picture } = profile._json
+    const { name, email, picture, sub } = profile._json
     const user = {
       name,
       email,
       picture,
+      sub
     }
 
     return user;

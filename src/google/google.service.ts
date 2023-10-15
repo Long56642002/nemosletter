@@ -10,6 +10,7 @@ export class GoogleService {
     const user = await this.prisma.user.findUnique({
       where: {
         email: req.user.email,
+        sub: req.user.sub,
         name: req.user.name
       }
     })
@@ -27,6 +28,7 @@ export class GoogleService {
     const result = await this.prisma.user.findFirst({
       where: {
         email: user.email,
+        sub: user.sub,
         name: user.name,
       }
     })

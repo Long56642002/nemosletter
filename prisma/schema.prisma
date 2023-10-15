@@ -17,6 +17,8 @@ model User {
 
   email String @unique
 
+  sub String @unique
+
   name String?
   picture String?
 
