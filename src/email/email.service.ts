@@ -1,15 +1,13 @@
 import { Injectable } from '@nestjs/common';
-import {config} from 'dotenv';
 import { googleMail, oAuth2Client } from 'src/constant';
 import { EmailOptions } from './email_options.type';
 import * as nodemailer from 'nodemailer';
-
-config();
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class EmailService {
-  constructor() {
-    oAuth2Client.setCredentials({ refresh_token: process.env.REFRESH_TOKEN, expiry_date: (new Date()).getTime() + (1000 * 60 * 60 * 24 * 7) })
+  constructor(readonly configService: ConfigService) {
+    oAuth2Client.setCredentials({ refresh_token: configService.get('REFRESH_TOKEN'), expiry_date: (new Date()).getTime() + (1000 * 60 * 60 * 24 * 7) })
   }
 
   async getEmailInformation(req) {
