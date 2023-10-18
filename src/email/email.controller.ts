@@ -1,7 +1,8 @@
-import { Controller, Get, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, UseGuards } from '@nestjs/common';
 import { EmailService } from './email.service';
 import { EmailOptions } from './email_options.type';
 import { JwtGuard } from 'src/auth/jwt.guard';
+import { UserDecorator } from 'src/common/decorators/user.decorator';
 
 @UseGuards(JwtGuard)
 @Controller('email')
@@ -9,21 +10,20 @@ export class EmailController {
   constructor(private readonly emailService: EmailService) {}
 
   @Get('get-email-info')
-  async getEmailInfo(@Req() req) {
-    const result = await this.emailService.getEmailInformation(req)
+  async getEmailInfo(@UserDecorator('email') email: string) {
+    const result = await this.emailService.getEmailInformation(email)
     return result
   }
 
   @Get('list')
-  async getEmailList(@Req() req) {
-    var result = await this.emailService.getEmailList(req)
+  async getEmailList(@UserDecorator('email') email: string) {
+    const result = await this.emailService.getEmailList(email)
     return result
   }
 
   @Get('send-email')
-  async sendEmail(@Req() req) {
-    const emailOptions: EmailOptions = req.body.email_options
-    const result = await this.emailService.sendEmail(req, emailOptions)
+  async sendEmail(@Body() emailOptions: EmailOptions, @UserDecorator('email') email: string) {
+    const result = await this.emailService.sendEmail(email, emailOptions)
     return result
   }
 }

@@ -10,23 +10,23 @@ export class EmailService {
     oAuth2Client.setCredentials({ refresh_token: configService.get('REFRESH_TOKEN'), expiry_date: (new Date()).getTime() + (1000 * 60 * 60 * 24 * 7) })
   }
 
-  async getEmailInformation(req) {
-    const gmailInformation = await googleMail.users.getProfile({ auth: oAuth2Client, userId: req.user.email })
+  async getEmailInformation(email: string) {
+    const gmailInformation = await googleMail.users.getProfile({ auth: oAuth2Client, userId: email })
     return gmailInformation.data
   }
 
-  async getEmailList(req) {
+  async getEmailList(email: string) {
     const threads = googleMail.users.threads
-    const gmailList = await threads.list({ auth: oAuth2Client, userId: req.user.email })
+    const gmailList = await threads.list({ auth: oAuth2Client, userId: email })
     return  gmailList.data
   }
 
-  async sendEmail(req, emailOption: EmailOptions) {
+  async sendEmail(email: string, emailOption: EmailOptions) {
     try {
       const accessToken = (await oAuth2Client.getAccessToken()).token
       const auth : any = {
         type: 'OAuth2',
-        user: req.user.email,
+        user: email,
         clientId: oAuth2Client._clientId,
         clientSecret: oAuth2Client._clientSecret,
         refreshToken: process.env.REFRESH_TOKEN,
@@ -36,7 +36,7 @@ export class EmailService {
         service: 'gmail',
         auth: auth,
       })
-      const result = await transport.sendMail({...emailOption, from: req.user.email })
+      const result = await transport.sendMail({...emailOption, from: email })
       return result
     } catch (error) {
       console.log(error)
