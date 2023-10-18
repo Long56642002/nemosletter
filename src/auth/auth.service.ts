@@ -1,15 +1,11 @@
 import { BadRequestException, HttpException, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { OAuth2Client, TokenPayload } from 'google-auth-library';
-import { config } from 'dotenv';
 import { GoogleLoginDto } from './dto/google-login.dto';
 import { UserService } from 'src/user/user.service';
 import { JwtService } from '@nestjs/jwt';
 import { CreateToken } from './interfaces/create-token.interface';
 import { AuthUser } from './dto/auth-user.dto';
-import { Token } from './interfaces/token.interface';
 import { ConfigService } from '@nestjs/config';
-
-config();
 
 @Injectable()
 export class AuthService {
@@ -26,7 +22,7 @@ export class AuthService {
     try {
       const ticket = await this.client.verifyIdToken({
         idToken: gIdToken,
-        audience: process.env.GOOGLE_CLIENT_ID
+        audience: this.configService.get('GOOGLE_CLIENT_ID')
       })
   
       const payload = ticket.getPayload()
@@ -64,8 +60,8 @@ export class AuthService {
       const accessToken = this.generateToken({ sub: user.sub })
 
       return {
-        ...user,
-        ...accessToken
+        user,
+        accessToken
       }
     } catch (e: any) {
       if (e instanceof HttpException) {
@@ -76,13 +72,11 @@ export class AuthService {
     }
   }
 
-  generateToken(payload: CreateToken): Token {
+  generateToken(payload: CreateToken): string {
     try {
       const accessToken = this.jwtService.sign(payload, {secret: this.configService.get('SECURITY')})
 
-      return {
-        accessToken
-      }
+      return accessToken
     } catch (e: any) {
       console.log(e)
       throw new InternalServerErrorException()
