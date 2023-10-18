@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { googleMail, oAuth2Client } from 'src/constant';
 import { EmailOptions } from './email_options.type';
 import * as nodemailer from 'nodemailer';
@@ -11,14 +11,22 @@ export class EmailService {
   }
 
   async getEmailInformation(email: string) {
-    const gmailInformation = await googleMail.users.getProfile({ auth: oAuth2Client, userId: email })
-    return gmailInformation.data
+    try {
+      const gmailInformation = await googleMail.users.getProfile({ auth: oAuth2Client, userId: email })
+      return gmailInformation.data
+    } catch (e: any) {
+      throw new InternalServerErrorException(e)
+    }
   }
 
   async getEmailList(email: string) {
-    const threads = googleMail.users.threads
-    const gmailList = await threads.list({ auth: oAuth2Client, userId: email })
-    return  gmailList.data
+    try {
+      const threads = googleMail.users.threads
+      const gmailList = await threads.list({ auth: oAuth2Client, userId: email })
+      return  gmailList.data
+    } catch (e: any) {
+      throw new InternalServerErrorException(e)
+    }
   }
 
   async sendEmail(email: string, emailOption: EmailOptions) {
@@ -38,9 +46,17 @@ export class EmailService {
       })
       const result = await transport.sendMail({...emailOption, from: email })
       return result
-    } catch (error) {
-      console.log(error)
-      return null;
+    } catch (e: any) {
+      throw new InternalServerErrorException(e)
+    }
+  }
+
+  async getEmailById(email: string, emailId: string) {
+    try {
+      const gmail = await googleMail.users.messages.get({ auth: oAuth2Client, userId: email, id: emailId })
+      return gmail.data
+    } catch (e: any) {
+      throw new InternalServerErrorException()
     }
   }
 }
