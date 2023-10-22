@@ -1,62 +1,38 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
-import { googleMail, oAuth2Client } from 'src/constant';
-import { EmailOptions } from './email_options.type';
-import * as nodemailer from 'nodemailer';
-import { ConfigService } from '@nestjs/config';
+import { Injectable, InternalServerErrorException, Logger } from "@nestjs/common";
+import { PrismaService } from "src/prisma/prisma.service";
+import { Mail, User } from "@prisma/client";
+import { CreateEmailDto } from "./dto/create-email.dto";
+import { PROCESS_SEND_MAIL } from "src/constant";
+import { Queue } from "bull";
+import { InjectQueue } from "@nestjs/bull";
 
 @Injectable()
 export class EmailService {
-  constructor(readonly configService: ConfigService) {
-    oAuth2Client.setCredentials({ refresh_token: configService.get('REFRESH_TOKEN'), expiry_date: (new Date()).getTime() + (1000 * 60 * 60 * 24 * 7) })
-  }
+  private readonly logger = new Logger(EmailService.name)
+  constructor(
+    private readonly prismaService: PrismaService,
+    @InjectQueue(PROCESS_SEND_MAIL) private readonly processSendMailQueue: Queue
+    ) {}
 
-  async getEmailInformation(email: string) {
+  async createEmailService({user, data}: {user: User, data: CreateEmailDto}):  Promise<Mail | undefined> {
     try {
-      const gmailInformation = await googleMail.users.getProfile({ auth: oAuth2Client, userId: email })
-      return gmailInformation.data
-    } catch (e: any) {
-      throw new InternalServerErrorException(e)
-    }
-  }
-
-  async getEmailList(email: string) {
-    try {
-      const threads = googleMail.users.threads
-      const gmailList = await threads.list({ auth: oAuth2Client, userId: email })
-      return  gmailList.data
-    } catch (e: any) {
-      throw new InternalServerErrorException(e)
-    }
-  }
-
-  async sendEmail(email: string, emailOption: EmailOptions) {
-    try {
-      const accessToken = (await oAuth2Client.getAccessToken()).token
-      const auth : any = {
-        type: 'OAuth2',
-        user: email,
-        clientId: oAuth2Client._clientId,
-        clientSecret: oAuth2Client._clientSecret,
-        refreshToken: process.env.REFRESH_TOKEN,
-        accessToken: accessToken,
-      }
-      const transport = nodemailer.createTransport({
-        service: 'gmail',
-        auth: auth,
+      const email = await this.prismaService.mail.create({
+        data: {
+          ...data,
+          userId: user.id
+        }
       })
-      const result = await transport.sendMail({...emailOption, from: email })
-      return result
+
+      return email
     } catch (e: any) {
       throw new InternalServerErrorException(e)
     }
   }
 
-  async getEmailById(email: string, emailId: string) {
-    try {
-      const gmail = await googleMail.users.messages.get({ auth: oAuth2Client, userId: email, id: emailId })
-      return gmail.data
-    } catch (e: any) {
-      throw new InternalServerErrorException()
-    }
+  async processSendMail({user, emailData}: {user: User, emailData: CreateEmailDto}) {
+    await this.processSendMailQueue.add({
+      user,
+      emailData
+    })
   }
 }

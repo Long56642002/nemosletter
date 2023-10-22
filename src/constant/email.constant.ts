@@ -6,3 +6,4 @@ export const oAuth2Client = new google.auth.OAuth2(
   process.env.GOOGLE_CLIENT_SECRET,
   process.env.GOOGLE_CALLBACK_URL,
 )
+export const PROCESS_SEND_MAIL = 'processSendMail'
