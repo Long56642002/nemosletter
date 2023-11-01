@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { User } from '@prisma/client';
@@ -8,23 +8,41 @@ export class UserService {
   constructor(private readonly prismaService: PrismaService) {}
 
   async createUser({data}: { data: CreateUserDto }): Promise<User> {
-    const user = await this.prismaService.user.create({
-      data: {
-        ...data
-      }
-    })
-
-    return user
+    try {
+      const user = await this.prismaService.user.create({
+        data: {
+          ...data
+        }
+      })
+  
+      return user
+    } catch (e: any) {
+      throw new InternalServerErrorException(e)
+    }
   }
 
   async findUserByEmailOrSub({ email, sub }: { email: string, sub: string }): Promise<User | null> {
-    const user = this.prismaService.user.findUnique({
-      where: {
-        email,
-        sub
-      }
-    })
-    
-    return user;
+    try {
+      const user = await this.prismaService.user.findUnique({
+        where: {
+          email,
+          sub
+        }
+      })
+      
+      return user;
+    } catch (e: any) {
+      throw new InternalServerErrorException(e)
+    }
   }
+
+  async getAllUsers(): Promise<User[] | undefined> {
+    try {
+      const users = await this.prismaService.user.findMany()
+      return users
+    } catch (e: any) {
+      throw new InternalServerErrorException(e)
+    }
+  }
+
 }
