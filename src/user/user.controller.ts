@@ -1,9 +1,9 @@
 import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
 import { UserService } from './user.service';
 import { GoogleGuard } from 'src/google/google.guard';
-import { UserDecorator } from 'src/common/decorators/user.decorator';
+import { UserDecorator } from '../common/decorators/user.decorator';
 import { User } from '@prisma/client';
-import { JwtGuard } from 'src/auth/jwt.guard';
+import { JwtGuard } from '../auth/jwt.guard';
 import { CreateUserDto } from './dto/create-user.dto';
 
 @Controller('user')

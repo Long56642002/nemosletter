@@ -1,9 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { UserController } from '../src/user/user.controller';
-import { UserService } from '../src/user/user.service';
+import { UserController } from './user.controller';
+import { UserService } from './user.service';
 import { User } from '@prisma/client';
-import { CreateUserDto } from '../src/user/dto/create-user.dto';
-import { JwtGuard } from '../src/auth/jwt.guard';
+import { CreateUserDto } from './dto/create-user.dto';
+import { JwtGuard } from '../auth/jwt.guard';
+import { PrismaModule } from '../prisma/prisma.module';
+import { ConfigModule } from '@nestjs/config';
 
 describe('UserController', () => {
   let controller: UserController;
@@ -11,6 +13,7 @@ describe('UserController', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
+      imports: [PrismaModule, ConfigModule.forRoot({ isGlobal: true })],
       controllers: [UserController],
       providers: [UserService],
     })
@@ -23,11 +26,11 @@ describe('UserController', () => {
   });
 
   describe('getInformation', () => {
-    it('should return the user information', async () => {
+    it('should return the user information', () => {
       const user: User = { id: 1, name: 'John Doe', email: 'john@example.com', createdAt: new Date(), updatedAt: new Date(), sub: 'sub', picture: 'picture', userType: 'standard' };
       jest.spyOn(userService, 'findUserByEmailOrSub').mockResolvedValue(user);
 
-      const result = await controller.getInformation(user);
+      const result = controller.getInformation(user);
 
       expect(result).toEqual(user);
     });
