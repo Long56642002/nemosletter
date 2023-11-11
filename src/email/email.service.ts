@@ -29,6 +29,20 @@ export class EmailService {
     }
   }
 
+  async getEmail({ user }: { user: User }): Promise<Mail[] | undefined> {
+    try {
+      const mails = await this.prismaService.mail.findMany({
+        where: {
+          user: user
+        }
+      })
+
+      return mails
+    } catch (e: any) {
+      throw new InternalServerErrorException(e)
+    }
+  }
+
   async processSendMail({user, emailData}: {user: User, emailData: CreateEmailDto}) {
     await this.processSendMailQueue.add({
       user,

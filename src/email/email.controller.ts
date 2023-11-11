@@ -39,6 +39,12 @@ export class EmailController {
     return result
   }
 
+  @Get('get-mails')
+  async getMails(@UserDecorator() user: User) {
+    const result = await this.emailService.getEmail({user})
+    return result
+  }
+
   @Get('send-email')
   async processSendEmail(@UserDecorator() user: User, @Body() emailData: CreateEmailDto) {
     return this.emailService.processSendMail({user, emailData})
