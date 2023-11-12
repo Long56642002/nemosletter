@@ -84,3 +84,7 @@ npx prisma migrate dev --name init
 ```bash
 npx prisma studio
 ```
+### Run docker redis
+```bash
+docker run -p 6379:6379 redis
+```
