@@ -17,7 +17,6 @@ export class UserController {
   }
 
   @Get()
-  @UseGuards(JwtGuard)
   async getAllUsers(): Promise<User[] | undefined> {
     const users = await this.userService.getAllUsers()
 
