@@ -21,6 +21,19 @@ export class UserService {
     }
   }
 
+  async updateUserType({ userId }: { userId: string }): Promise<User> {
+    const updatedUser = await this.prismaService.user.update({
+      where: {
+        id: parseInt(userId)
+      },
+      data: {
+        userType: 'premium'
+      }
+    })
+
+    return updatedUser
+  }
+
   async findUserByEmailOrSub({ email, sub }: { email: string, sub: string }): Promise<User | null> {
     try {
       const user = await this.prismaService.user.findUnique({
